@@ -10,7 +10,7 @@ type ARMinstruction struct {
 	Operands []string
 }
 
-func generalizeARMinstruction(arm ARMinstruction) ARMinstruction {
+func generalizeARMinstruction(arm ARMinstruction) *ARMinstruction {
 
 	operands := arm.Operands
 	operands_int := make(map[string][]int)
@@ -31,17 +31,27 @@ func generalizeARMinstruction(arm ARMinstruction) ARMinstruction {
 		}
 		actual++
 	}
-
-	// TODO : fix when Operand3 is not set (default 0 :/ )
-	generalizedInstruction := ARMinstruction{
-		Mnemonic: arm.Mnemonic,
-		Operands: []string{"$r" + strconv.Itoa(int_operand[0]),
-			"$r" + strconv.Itoa(int_operand[1]),
-			"$r" + strconv.Itoa(int_operand[2]),
-		},
+	if len(arm.Operands) == 3 {
+		generalizedInstruction := ARMinstruction{
+			Mnemonic: arm.Mnemonic,
+			Operands: []string{"$r" + strconv.Itoa(int_operand[0]),
+				"$r" + strconv.Itoa(int_operand[1]),
+				"$r" + strconv.Itoa(int_operand[2]),
+			},
+		}
+		return &generalizedInstruction
+	}
+	if len(arm.Operands) == 2 {
+		generalizedInstruction := ARMinstruction{
+			Mnemonic: arm.Mnemonic,
+			Operands: []string{"$r" + strconv.Itoa(int_operand[0]),
+				"$r" + strconv.Itoa(int_operand[1]),
+			},
+		}
+		return &generalizedInstruction
 	}
 
-	return generalizedInstruction
+	return nil
 
 }
 
@@ -67,7 +77,11 @@ func generatePolymorph(arm ARMinstruction) string {
 		},
 	}
 	var str_equi = arm.Mnemonic + " " +
-		arm.Operands[0] + ", " + arm.Operands[1] + ", " + arm.Operands[2]
+		arm.Operands[0] + ", " + arm.Operands[1]
+
+	if len(arm.Operands) == 3 {
+		str_equi = str_equi + ", " + arm.Operands[2]
+	}
 
 	if contains(equivalence, str_equi) {
 		return equivalence[str_equi][rand.Intn(len(equivalence[str_equi]))]

@@ -2,6 +2,14 @@ package main
 
 import "fmt"
 
+func displayARMinstruction(message string, arm ARMinstruction) {
+	fmt.Print(message, " ", arm.Mnemonic, " ", arm.Operands[0], " ", arm.Operands[1])
+	if len(arm.Operands) == 3 {
+		fmt.Print(" ", arm.Operands[2])
+	}
+	fmt.Println()
+}
+
 func main() {
 	instr1 := ARMinstruction{
 		Mnemonic: "subs",
@@ -10,10 +18,10 @@ func main() {
 		},
 	}
 
-	fmt.Println("Original:", instr1.Mnemonic, instr1.Operands[0], instr1.Operands[1], instr1.Operands[2])
-	var instr2 ARMinstruction = generalizeARMinstruction(instr1)
-	fmt.Println("Generalize:", instr2.Mnemonic, instr2.Operands[0], instr2.Operands[1], instr2.Operands[2])
-	var instr3 string = generatePolymorph(instr2)
+	displayARMinstruction("Original:", instr1)
+	var instr2 = generalizeARMinstruction(instr1)
+	displayARMinstruction("Generalize:", *instr2)
+	var instr3 string = generatePolymorph(*instr2)
 	fmt.Println("Result:", instr3)
 
 }
