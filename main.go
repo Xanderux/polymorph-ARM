@@ -1,6 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 func displayARMinstruction(message string, arm ARMinstruction) {
 	fmt.Print(message, " ", arm.Mnemonic, " ", arm.Operands[0], " ", arm.Operands[1])
@@ -23,5 +26,13 @@ func main() {
 	displayARMinstruction("Generalize:", *instr2)
 	var instr3 string = generatePolymorph(*instr2)
 	fmt.Println("Result:", instr3)
+
+	content := readLineByLine("shellcode-904.c")
+
+	for _, str := range content {
+		if isARMInstruction(strings.ToUpper(str)) {
+			fmt.Println("ARM detected :" + str)
+		}
+	}
 
 }
