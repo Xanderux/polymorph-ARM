@@ -2,6 +2,7 @@ package main
 
 import (
 	"math/rand"
+	"regexp"
 	"strconv"
 )
 
@@ -88,4 +89,16 @@ func generatePolymorph(arm ARMinstruction) string {
 
 	}
 	return ""
+}
+
+func isARMInstruction(ins string) bool {
+	// SUB R4, R5, #4
+	regex := `[A-Z]{1,4}((,)?\s(R(1[0-5]|[0-9])|#[0-F])){1,3}`
+	re := regexp.MustCompile(regex)
+	matches := re.FindString(ins)
+	if matches == "" {
+		return false
+	} else {
+		return true
+	}
 }
