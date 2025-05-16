@@ -1,9 +1,12 @@
-package main
+package sources
 
 import (
+	"fmt"
 	"math/rand"
+	"os"
 	"regexp"
 	"strconv"
+	"strings"
 )
 
 type ARMinstruction struct {
@@ -11,7 +14,7 @@ type ARMinstruction struct {
 	Operands []string
 }
 
-func generalizeARMinstruction(arm ARMinstruction) *ARMinstruction {
+func GeneralizeARMinstruction(arm ARMinstruction) *ARMinstruction {
 
 	operands := arm.Operands
 	operands_int := make(map[string][]int)
@@ -67,14 +70,13 @@ func contains(slice map[string][]string, value string) bool {
 
 }
 
-func generatePolymorph(arm ARMinstruction) string {
+func GeneratePolymorph(arm ARMinstruction) string {
 	equivalence := map[string][]string{
 		"subs $r0, $r0, $r0": {
-			"subs r4, r4, r4",
-			"mov r4, #0",
-			"eor r4, r4, r4",
-			"bic r4, r4, r4",
-			"and r4, r4, #0",
+			"movs $r0, #0",
+			"eors $r0, $r0, $r0",
+			"ands $r0, $r0, #0",
+			"bics $r0, $r0, $r0",
 		},
 	}
 	var str_equi = arm.Mnemonic + " " +
@@ -91,14 +93,48 @@ func generatePolymorph(arm ARMinstruction) string {
 	return ""
 }
 
-func isARMInstruction(ins string) bool {
+func isARMInstruction(ins string) string {
 	// SUB R4, R5, #4
-	regex := `[A-Z]{1,4}((,)?\s(R(1[0-5]|[0-9])|#[0-F])){1,3}`
+	regex := `(MOV|SUBS|ADDS){1,4}((,)?\s(R(1[0-5]|[0-9])|#[0-F])){1,3}`
 	re := regexp.MustCompile(regex)
 	matches := re.FindString(ins)
-	if matches == "" {
-		return false
-	} else {
-		return true
+	return matches
+}
+
+func stringToARMinstruction(src string) ARMinstruction {
+	src = strings.ReplaceAll(src, ",", "")
+	slice := strings.Split(src, " ")
+	operand := slice[0]
+	operands := slice[1:]
+	instr1 := ARMinstruction{
+		Mnemonic: operand,
+		Operands: operands,
+	}
+	return instr1
+
+}
+
+func PolymorphEngine(inputPath string, outputPath string) {
+	content := readLineByLine(inputPath)
+
+	file, err := os.Create(outputPath)
+
+	if err != nil {
+		fmt.Println("Can't open file" + outputPath)
+
+	}
+
+	for _, str := range content {
+		result := isARMInstruction(strings.ToUpper(str))
+		if result == "" {
+			file.WriteString(str + "\n")
+		} else {
+			ins_gen := GeneralizeARMinstruction(stringToARMinstruction(result))
+
+			new_ins := GeneratePolymorph(*ins_gen)
+
+			file.WriteString(new_ins + "\n")
+
+		}
 	}
 }

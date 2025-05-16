@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
-	"strings"
+
+	"github.com/Xanderux/polymorph-ARM/sources"
 )
 
-func displayARMinstruction(message string, arm ARMinstruction) {
+func displayARMinstruction(message string, arm sources.ARMinstruction) {
 	fmt.Print(message, " ", arm.Mnemonic, " ", arm.Operands[0], " ", arm.Operands[1])
 	if len(arm.Operands) == 3 {
 		fmt.Print(" ", arm.Operands[2])
@@ -14,7 +15,7 @@ func displayARMinstruction(message string, arm ARMinstruction) {
 }
 
 func main() {
-	instr1 := ARMinstruction{
+	instr1 := sources.ARMinstruction{
 		Mnemonic: "subs",
 		Operands: []string{
 			"r4", "r4", "r4",
@@ -22,17 +23,11 @@ func main() {
 	}
 
 	displayARMinstruction("Original:", instr1)
-	var instr2 = generalizeARMinstruction(instr1)
+	var instr2 = sources.GeneralizeARMinstruction(instr1)
 	displayARMinstruction("Generalize:", *instr2)
-	var instr3 string = generatePolymorph(*instr2)
+	var instr3 string = sources.GeneratePolymorph(*instr2)
 	fmt.Println("Result:", instr3)
 
-	content := readLineByLine("shellcode-904.c")
-
-	for _, str := range content {
-		if isARMInstruction(strings.ToUpper(str)) {
-			fmt.Println("ARM detected :" + str)
-		}
-	}
+	sources.PolymorphEngine("shellcode-904.c", "shellcode-904_new.c")
 
 }
