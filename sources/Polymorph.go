@@ -72,23 +72,49 @@ func contains(slice map[string][]string, value string) bool {
 
 func GeneratePolymorph(arm ARMinstruction) string {
 	equivalence := map[string][]string{
-		"subs $r0, $r0, $r0": {
-			"movs $r0, #0",
-			"eors $r0, $r0, $r0",
-			"ands $r0, $r0, #0",
-			"bics $r0, $r0, $r0",
+		"SUBS $r0 $r0 $r0": {
+			"MOVS $r0 #0",
+			"EORS $r0 $r0 $r0",
+			"ANDS $r0 $r0 #0",
+			"BICS $r0 $r0 $r0",
 		},
 	}
 	var str_equi = arm.Mnemonic + " " +
-		arm.Operands[0] + ", " + arm.Operands[1]
+		arm.Operands[0] + " " + arm.Operands[1]
 
 	if len(arm.Operands) == 3 {
-		str_equi = str_equi + ", " + arm.Operands[2]
+		str_equi = str_equi + " " + arm.Operands[2]
 	}
 
 	if contains(equivalence, str_equi) {
 		return equivalence[str_equi][rand.Intn(len(equivalence[str_equi]))]
 
+	}
+	// fail, return the base polymorph
+	return str_equi
+}
+
+func ARMinstructionToString(arm ARMinstruction) string {
+	if len(arm.Operands) < 2 {
+		return ""
+	}
+	result := arm.Mnemonic + " " + arm.Operands[0] + " " + arm.Operands[1]
+	if len(arm.Operands) == 3 {
+		result += " " + arm.Operands[2]
+	}
+	return result
+}
+
+func PolymorphToInstruction(poly_str string, base_ins ARMinstruction) string {
+	poly_ins := stringToARMinstruction(poly_str)
+
+	// to do : "subs $r0, $r0, $r0" et ands $r0, $r0, #0 ne devrait pas passer
+	if len(poly_ins.Operands) == len(base_ins.Operands) {
+		new_ins := ARMinstruction{
+			Mnemonic: poly_ins.Mnemonic,
+			Operands: base_ins.Operands,
+		}
+		return ARMinstructionToString(new_ins)
 	}
 	return ""
 }
@@ -101,6 +127,7 @@ func isARMInstruction(ins string) string {
 	return matches
 }
 
+// Convert an assembly instruction into a struct
 func stringToARMinstruction(src string) ARMinstruction {
 	src = strings.ReplaceAll(src, ",", "")
 	slice := strings.Split(src, " ")
@@ -125,16 +152,20 @@ func PolymorphEngine(inputPath string, outputPath string) {
 	}
 
 	for _, str := range content {
+
 		result := isARMInstruction(strings.ToUpper(str))
+
 		if result == "" {
 			file.WriteString(str + "\n")
 		} else {
-			ins_gen := GeneralizeARMinstruction(stringToARMinstruction(result))
-
-			new_ins := GeneratePolymorph(*ins_gen)
+			// fetch the base instruction
+			base_ins := stringToARMinstruction(result)
+			// generalize it
+			gen_ins := GeneralizeARMinstruction(base_ins)
+			poly_ins := GeneratePolymorph(*gen_ins)
+			new_ins := PolymorphToInstruction(poly_ins, base_ins)
 
 			file.WriteString(new_ins + "\n")
-
 		}
 	}
 }

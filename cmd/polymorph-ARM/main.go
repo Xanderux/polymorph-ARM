@@ -15,19 +15,5 @@ func displayARMinstruction(message string, arm sources.ARMinstruction) {
 }
 
 func main() {
-	instr1 := sources.ARMinstruction{
-		Mnemonic: "subs",
-		Operands: []string{
-			"r4", "r4", "r4",
-		},
-	}
-
-	displayARMinstruction("Original:", instr1)
-	var instr2 = sources.GeneralizeARMinstruction(instr1)
-	displayARMinstruction("Generalize:", *instr2)
-	var instr3 string = sources.GeneratePolymorph(*instr2)
-	fmt.Println("Result:", instr3)
-
 	sources.PolymorphEngine("shellcode-904.c", "shellcode-904_new.c")
-
 }
