@@ -119,9 +119,9 @@ func PolymorphToInstruction(poly_str string, base_ins ARMinstruction) string {
 	return ""
 }
 
-func isARMInstruction(ins string) string {
+func IsARMInstruction(ins string) string {
 	// SUB R4, R5, #4
-	regex := `(MOV|SUBS|ADDS){1,4}((,)?\s(R(1[0-5]|[0-9])|#[0-F])){1,3}`
+	regex := `(?i)(mov(s)|add(s)|sub(s)|eor(s)|and(s)|orr|bic(s)|cmp|cmn|ldr|str|bx|bl|b|bne|beq|blx){1,4}((,)?\s(R(1[0-5]|[0-9])|#[0-F])){1,3}`
 	re := regexp.MustCompile(regex)
 	matches := re.FindString(ins)
 	return matches
@@ -153,7 +153,7 @@ func PolymorphEngine(inputPath string, outputPath string) {
 
 	for _, str := range content {
 
-		result := isARMInstruction(strings.ToUpper(str))
+		result := IsARMInstruction(strings.ToUpper(str))
 
 		if result == "" {
 			file.WriteString(str + "\n")
