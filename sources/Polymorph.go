@@ -15,48 +15,50 @@ type ARMinstruction struct {
 }
 
 func GeneralizeARMinstruction(arm ARMinstruction) *ARMinstruction {
-
 	operands := arm.Operands
-	operands_int := make(map[string][]int)
-	int_operand := [3]int{-1, -1, -1}
 
-	// associate operand to indices
-	for index, operand := range operands {
-		if operand != "" {
-			operands_int[operand] = append(operands_int[operand], index)
+	// Maps to assign a unique ID to each register and each immediate
+	regMap := make(map[string]int)
+	immMap := make(map[string]int)
+	nextRegID, nextImmID := 0, 0
+
+	// Slice to store the assigned IDs per operand position
+	intOperand := make([]int, len(operands))
+
+	// Iterate through the operands in order
+	for i, op := range operands {
+		if strings.HasPrefix(op, "#") {
+			// Immediate operand
+			if _, seen := immMap[op]; !seen {
+				immMap[op] = nextImmID
+				nextImmID++
+			}
+			intOperand[i] = immMap[op]
+		} else {
+			// Register operand (or treated as register if not immediate)
+			if _, seen := regMap[op]; !seen {
+				regMap[op] = nextRegID
+				nextRegID++
+			}
+			intOperand[i] = regMap[op]
 		}
 	}
 
-	// reverse map to an array
-	var actual int = 0
-	for _, index := range operands_int {
-		for _, i := range index {
-			int_operand[i] = actual
+	// Build the generalized operands slice
+	generalized := make([]string, len(operands))
+	for i, op := range operands {
+		if strings.HasPrefix(op, "#") {
+			generalized[i] = "$imm" + strconv.Itoa(intOperand[i])
+		} else {
+			generalized[i] = "$r" + strconv.Itoa(intOperand[i])
 		}
-		actual++
-	}
-	if len(arm.Operands) == 3 {
-		generalizedInstruction := ARMinstruction{
-			Mnemonic: arm.Mnemonic,
-			Operands: []string{"$r" + strconv.Itoa(int_operand[0]),
-				"$r" + strconv.Itoa(int_operand[1]),
-				"$r" + strconv.Itoa(int_operand[2]),
-			},
-		}
-		return &generalizedInstruction
-	}
-	if len(arm.Operands) == 2 {
-		generalizedInstruction := ARMinstruction{
-			Mnemonic: arm.Mnemonic,
-			Operands: []string{"$r" + strconv.Itoa(int_operand[0]),
-				"$r" + strconv.Itoa(int_operand[1]),
-			},
-		}
-		return &generalizedInstruction
 	}
 
-	return nil
-
+	// Return the generalized instruction
+	return &ARMinstruction{
+		Mnemonic: arm.Mnemonic,
+		Operands: generalized,
+	}
 }
 
 func contains(slice map[string][]string, value string) bool {
@@ -79,11 +81,9 @@ func GeneratePolymorph(arm ARMinstruction) string {
 			"BICS $r0 $r0 $r0",
 		},
 	}
-	var str_equi = arm.Mnemonic + " " +
-		arm.Operands[0] + " " + arm.Operands[1]
-
-	if len(arm.Operands) == 3 {
-		str_equi = str_equi + " " + arm.Operands[2]
+	str_equi := arm.Mnemonic
+	for _, op := range arm.Operands {
+		str_equi = str_equi + " " + op
 	}
 
 	if contains(equivalence, str_equi) {
@@ -158,14 +158,19 @@ func PolymorphEngine(inputPath string, outputPath string) {
 		if result == "" {
 			file.WriteString(str + "\n")
 		} else {
+			fmt.Println(result)
 			// fetch the base instruction
 			base_ins := stringToARMinstruction(result)
 			// generalize it
 			gen_ins := GeneralizeARMinstruction(base_ins)
 			poly_ins := GeneratePolymorph(*gen_ins)
 			new_ins := PolymorphToInstruction(poly_ins, base_ins)
+			if new_ins != "" {
+				file.WriteString(new_ins + "\n")
+			} else {
+				file.WriteString(result + "\n")
+			}
 
-			file.WriteString(new_ins + "\n")
 		}
 	}
 }
