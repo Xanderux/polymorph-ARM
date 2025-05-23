@@ -89,3 +89,48 @@ func TestGeneralizeARMinstruction(t *testing.T) {
 		}
 	}
 }
+
+func TestPolymorphToInstruction(t *testing.T) {
+	tests := []struct {
+		input_string string
+		input_inst   sources.ARMinstruction
+		expected     string
+	}{
+		{
+			input_string: "MOVS $r0 #0",
+			input_inst: sources.ARMinstruction{
+				Mnemonic: "SUBS",
+				Operands: []string{"r1", "r1", "r1"},
+			},
+			expected: "MOVS r1 #0",
+		},
+		{
+			input_string: "EORS $r0 $r0 $r0",
+			input_inst: sources.ARMinstruction{
+				Mnemonic: "SUBS",
+				Operands: []string{"r1", "r1", "r1"},
+			},
+			expected: "EORS r1 r1 r1",
+		},
+		{
+			input_string: "EORS $r0 $r0 $r0",
+			input_inst: sources.ARMinstruction{
+				Mnemonic: "MOVS",
+				Operands: []string{"r3", "#0"},
+			},
+			expected: "EORS r3 r3 r3",
+		},
+	}
+
+	for i, test := range tests {
+		result := sources.PolymorphToInstruction(test.input_string, test.input_inst)
+		if result == "" {
+			t.Errorf("Test %d: GeneralizeARMinstruction returned empty string", i)
+		} else {
+			if result != test.expected {
+				t.Errorf("Test %d: Expected result %s, got %s", i, test.expected, result)
+			}
+		}
+
+	}
+}

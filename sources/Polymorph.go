@@ -73,6 +73,8 @@ func contains(slice map[string][]string, value string) bool {
 }
 
 func GeneratePolymorph(arm ARMinstruction) string {
+	// TODO 1 : change struct into [][]string
+	// TODO 2 : one instruction can be equivalent to 2 others
 	equivalence := map[string][]string{
 		"SUBS $r0 $r0 $r0": {
 			"MOVS $r0 #0",
@@ -105,18 +107,33 @@ func ARMinstructionToString(arm ARMinstruction) string {
 	return result
 }
 
-func PolymorphToInstruction(poly_str string, base_ins ARMinstruction) string {
-	poly_ins := stringToARMinstruction(poly_str)
+func PolymorphToInstruction(polyStr string, baseIns ARMinstruction) string {
+	polyIns := stringToARMinstruction(polyStr)
 
-	// to do : "subs $r0, $r0, $r0" et ands $r0, $r0, #0 ne devrait pas passer
-	if len(poly_ins.Operands) == len(base_ins.Operands) {
-		new_ins := ARMinstruction{
-			Mnemonic: poly_ins.Mnemonic,
-			Operands: base_ins.Operands,
+	results := make([]string, 0)
+
+	for _, op := range polyIns.Operands {
+		if strings.HasPrefix(op, "$r") {
+			// extract index
+			indexStr := strings.TrimPrefix(op, "$r")
+			index, err := strconv.Atoi(indexStr)
+			if err != nil || index < 0 || index >= len(baseIns.Operands) {
+				// failed
+				return ""
+			}
+			results = append(results, baseIns.Operands[index])
+		} else {
+			// immediate value
+			results = append(results, op)
 		}
-		return ARMinstructionToString(new_ins)
 	}
-	return ""
+
+	newIns := ARMinstruction{
+		Mnemonic: polyIns.Mnemonic,
+		Operands: results,
+	}
+
+	return ARMinstructionToString(newIns)
 }
 
 func IsARMInstruction(ins string) string {
