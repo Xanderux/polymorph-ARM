@@ -108,22 +108,41 @@ func ARMinstructionToString(arm ARMinstruction) string {
 }
 
 func PolymorphToInstruction(polyStr string, baseIns ARMinstruction) string {
-	polyIns := stringToARMinstruction(polyStr)
+	polyIns := StringToARMinstruction(polyStr)
 
-	results := make([]string, 0)
+	// Split registries and immediate values
+	regOperands := []string{}
+	immOperands := []string{}
+
+	for _, op := range baseIns.Operands {
+		if strings.HasPrefix(op, "#") {
+			immOperands = append(immOperands, op)
+		} else {
+			regOperands = append(regOperands, op)
+		}
+	}
+
+	results := make([]string, 0, len(polyIns.Operands))
 
 	for _, op := range polyIns.Operands {
 		if strings.HasPrefix(op, "$r") {
-			// extract index
 			indexStr := strings.TrimPrefix(op, "$r")
 			index, err := strconv.Atoi(indexStr)
-			if err != nil || index < 0 || index >= len(baseIns.Operands) {
-				// failed
+			if err != nil || index < 0 || index >= len(regOperands) {
 				return ""
+			} else {
+				results = append(results, regOperands[index])
 			}
-			results = append(results, baseIns.Operands[index])
+		} else if strings.HasPrefix(op, "$imm") {
+			indexStr := strings.TrimPrefix(op, "$imm")
+			index, err := strconv.Atoi(indexStr)
+			if err != nil || index < 0 || index >= len(immOperands) {
+				return ""
+			} else {
+				results = append(results, immOperands[index])
+			}
 		} else {
-			// immediate value
+			// keep as it is
 			results = append(results, op)
 		}
 	}
@@ -145,7 +164,7 @@ func IsARMInstruction(ins string) string {
 }
 
 // Convert an assembly instruction into a struct
-func stringToARMinstruction(src string) ARMinstruction {
+func StringToARMinstruction(src string) ARMinstruction {
 	src = strings.ReplaceAll(src, ",", "")
 	slice := strings.Split(src, " ")
 	operand := slice[0]
@@ -177,7 +196,7 @@ func PolymorphEngine(inputPath string, outputPath string) {
 		} else {
 			fmt.Println(result)
 			// fetch the base instruction
-			base_ins := stringToARMinstruction(result)
+			base_ins := StringToARMinstruction(result)
 			// generalize it
 			gen_ins := GeneralizeARMinstruction(base_ins)
 			poly_ins := GeneratePolymorph(*gen_ins)
