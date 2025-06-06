@@ -1,7 +1,9 @@
 package main
 
 import (
+	"flag"
 	"fmt"
+	"os"
 
 	"github.com/Xanderux/polymorph-ARM/sources"
 )
@@ -15,5 +17,17 @@ func displayARMinstruction(message string, arm sources.ARMinstruction) {
 }
 
 func main() {
-	sources.PolymorphEngine("shellcode-904.c", "shellcode-904_new.c")
+	input := flag.String("i", "", "ARM assembly source file")
+	output := flag.String("o", "", "ARM assembly output file")
+
+	flag.Parse()
+
+	if *input == "" || *output == "" {
+		fmt.Println("Invalid usage")
+		flag.Usage()
+		os.Exit(1)
+	}
+
+	sources.PolymorphEngine(*input, *output)
+
 }
