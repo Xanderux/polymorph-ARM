@@ -148,7 +148,7 @@ func TestPolymorphToInstruction(t *testing.T) {
 				Mnemonic: "SUBS",
 				Operands: []string{"r1", "r1", "r1"},
 			},
-			expected: "MOVS r1 #0",
+			expected: "MOVS r1, #0",
 		},
 		{
 			input_string: "EORS $r0 $r0 $r0",
@@ -156,7 +156,7 @@ func TestPolymorphToInstruction(t *testing.T) {
 				Mnemonic: "SUBS",
 				Operands: []string{"r1", "r1", "r1"},
 			},
-			expected: "EORS r1 r1 r1",
+			expected: "EORS r1, r1, r1",
 		},
 		{
 			input_string: "EORS $r0 $r0 $r0",
@@ -164,7 +164,7 @@ func TestPolymorphToInstruction(t *testing.T) {
 				Mnemonic: "MOVS",
 				Operands: []string{"r3", "#0"},
 			},
-			expected: "EORS r3 r3 r3",
+			expected: "EORS r3, r3, r3",
 		},
 		{
 			input_string: "ADDS $r0 $imm0",
@@ -172,7 +172,7 @@ func TestPolymorphToInstruction(t *testing.T) {
 				Mnemonic: "ADDS",
 				Operands: []string{"r7", "#3"},
 			},
-			expected: "ADDS r7 #3",
+			expected: "ADDS r7, #3",
 		},
 		{
 			input_string: "ADDS $r0 $imm0",
@@ -180,7 +180,7 @@ func TestPolymorphToInstruction(t *testing.T) {
 				Mnemonic: "ADDS",
 				Operands: []string{"r7", "#14"},
 			},
-			expected: "ADDS r7 #14",
+			expected: "ADDS r7, #14",
 		},
 	}
 
