@@ -100,9 +100,9 @@ func ARMinstructionToString(arm ARMinstruction) string {
 	if len(arm.Operands) < 2 {
 		return ""
 	}
-	result := arm.Mnemonic + " " + arm.Operands[0] + " " + arm.Operands[1]
+	result := arm.Mnemonic + " " + arm.Operands[0] + ", " + arm.Operands[1]
 	if len(arm.Operands) == 3 {
-		result += " " + arm.Operands[2]
+		result += ", " + arm.Operands[2]
 	}
 	return result
 }
@@ -157,7 +157,7 @@ func PolymorphToInstruction(polyStr string, baseIns ARMinstruction) string {
 
 func IsARMInstruction(ins string) string {
 	// SUB R4, R5, #4
-	regex := `(?i)(mov(s)|add(s)|sub(s)|eor(s)|and(s)|orr|bic(s)|cmp){1,4}((,)?\s(R(1[0-5]|[0-9])|#\d+)){1,3}`
+	regex := `(?i)(mov(s)|add(s)|sub(s)|eor(s)|and(s)|orr|bic(s)|cmp){1,4}((,)?\s+(R(1[0-5]|[0-9])|#\d+)){1,3}`
 	re := regexp.MustCompile(regex)
 	matches := re.FindString(ins)
 	return matches
