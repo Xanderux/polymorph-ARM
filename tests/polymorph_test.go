@@ -106,6 +106,16 @@ func TestGeneralizeARMinstruction(t *testing.T) {
 				Operands: []string{"$r0", "$imm0"},
 			},
 		},
+		{
+			input: sources.ARMinstruction{
+				Mnemonic: "adds",
+				Operands: []string{"r0", "#14"},
+			},
+			expected: sources.ARMinstruction{
+				Mnemonic: "adds",
+				Operands: []string{"$r0", "$imm0"},
+			},
+		},
 	}
 
 	for i, test := range tests {
@@ -157,12 +167,20 @@ func TestPolymorphToInstruction(t *testing.T) {
 			expected: "EORS r3 r3 r3",
 		},
 		{
-			input_string: "ADDS R7 $imm0",
+			input_string: "ADDS $r0 $imm0",
 			input_inst: sources.ARMinstruction{
 				Mnemonic: "ADDS",
 				Operands: []string{"r7", "#3"},
 			},
-			expected: "ADDS R7 #3",
+			expected: "ADDS r7 #3",
+		},
+		{
+			input_string: "ADDS $r0 $imm0",
+			input_inst: sources.ARMinstruction{
+				Mnemonic: "ADDS",
+				Operands: []string{"r7", "#14"},
+			},
+			expected: "ADDS r7 #14",
 		},
 	}
 
